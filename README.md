@@ -3,85 +3,92 @@
 #include <iomanip>
 using namespace std;
 
-const int MAX = 30;
+const int MAX_ALUNOS = 10;
 
-// Função para carregar nomes do ficheiro
-int carregarNomes(string nomes[]) {
-    ifstream ficheiro("nomes.txt");
-    int i = 0;
+int carregarNomes(string nome[]) {
+    ifstream ficheiro("nome.txt");
+    int total = 0;
 
     if (!ficheiro) {
-        cout << "Erro ao abrir o ficheiro de nomes!\n";
+        cout << "Erro ao abrir ficheiro de nomes!" << endl;
         return 0;
     }
 
-    while (getline(ficheiro, nomes[i]) && i < MAX) {
-        i++;
+    while (getline(ficheiro, nome[total]) && total < MAX_ALUNOS) {
+        total++;
     }
 
     ficheiro.close();
-    return i; // retorna o número de alunos carregados
+    return total;
+}
+
+void inserirNotas(float t1[], float t2[], int total, string nome[]) {
+    for (int i = 0; i < total; i++) {
+        cout << "Aluno: " << nome[i] << endl;
+
+        cout << "Nota Teste 1: ";
+        cin >> t1[i];
+
+        cout << "Nota Teste 2: ";
+        cin >> t2[i];
+
+        cout << endl;
+    }
+}
+
+void calcularMedias(float t1[], float t2[], float medias[], int total) {
+    for (int i = 0; i < total; i++) {
+        medias[i] = (t1[i] + t2[i]) / 2;
+    }
+}
+
+void guardarPauta(string nome[], float t1[], float t2[], float medias[], int total) {
+    ofstream ficheiro("pauta_final.txt");
+
+    if (!ficheiro) {
+        cout << "Erro ao criar ficheiro!" << endl;
+        return;
+    }
+
+    ficheiro << left << setw(20) << "Nome"
+             << setw(10) << "Teste1"
+             << setw(10) << "Teste2"
+             << setw(10) << "Media"
+             << setw(12) << "Estado" << endl;
+
+    ficheiro << "-------------------------------------------------------------" << endl;
+
+    for (int i = 0; i < total; i++) {
+        string estado = (medias[i] >= 10) ? "Aprovado" : "Reprovado";
+
+        ficheiro << left << setw(20) << nome [i]
+                 << setw(10) << fixed << setprecision(2) << t1[i]
+                 << setw(10) << t2[i]
+                 << setw(10) << medias[i]
+                 << setw(12) << estado << endl;
+    }
+
+    ficheiro.close();
 }
 
 int main() {
-    string nomes[MAX];
-    float notas_teste1[MAX], notas_teste2[MAX], media[MAX];
-    int totalAlunos;
+    string nome[MAX_ALUNOS];
+    float notas1[MAX_ALUNOS], notas2[MAX_ALUNOS], medias[MAX_ALUNOS];
 
-    // Carregar nomes do ficheiro
-    totalAlunos = carregarNomes(nomes);
+    int total = carregarNomes(nome);
 
-    if (totalAlunos == 0) {
-        cout << "Nenhum aluno encontrado.\n";
+    if (total == 0) {
+        cout << "Nenhum aluno carregado!" << endl;
         return 1;
     }
 
-    // Inserir notas
-    cout << "=== Inserção de Notas ===\n";
-    for (int i = 0; i < totalAlunos; i++) {
-        cout << "\nAluno: " << nomes[i] << endl;
+    cout << "Total de alunos: " << total << endl << endl;
 
-        cout << "Nota Teste 1: ";
-        cin >> notas_teste1[i];
+    inserirNotas(notas1, notas2, total, nome);
+    calcularMedias(notas1, notas2, medias, total);
+    guardarPauta(nome, notas1, notas2, medias, total);
 
-        cout << "Nota Teste 2: ";
-        cin >> notas_teste2[i];
-
-        // Calcula média
-        media[i] = (notas_teste1[i] + notas_teste2[i]) / 2;
-    }
-
-    // Criar ficheiro de saída
-    ofstream pauta("pauta_final.txt");
-
-    if (!pauta) {
-        cout << "Erro ao criar o ficheiro!\n";
-        return 1;
-    }
-
-    // Cabeçalho da tabela
-    pauta << left << setw(20) << "Nome"
-          << setw(10) << "Teste1"
-          << setw(10) << "Teste2"
-          << setw(10) << "Media"
-          << setw(12) << "Estado" << endl;
-
-    pauta << "-----------------------------------------------------------\n";
-
-    // Escrever dados no ficheiro
-    for (int i = 0; i < totalAlunos; i++) {
-        string estado = (media[i] >= 10) ? "Aprovado" : "Reprovado";
-
-        pauta << left << setw(20) << nomes[i]
-              << setw(10) << notas_teste1[i]
-              << setw(10) << notas_teste2[i]
-              << setw(10) << fixed << setprecision(1) << media[i]
-              << setw(12) << estado << endl;
-    }
-
-    pauta.close();
-
-    cout << "\nPauta final gerada com sucesso em 'pauta_final.txt'!\n";
+    cout << "Pauta final guardada com sucesso!" << endl;
 
     return 0;
 }
